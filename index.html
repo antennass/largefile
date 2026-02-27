@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Missy's Drapes | Model Viewer</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="Model viewer with Castlery-style layout" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+      :root {
+        --bg: #f7f3ee;
+        --panel: #fbf8f4;
+        --text: #4f2b1e;
+        --muted: #8e7a6d;
+        --line: #e5ddd4;
+        --accent: #c85f1f;
+        --accent-dark: #5d2131;
+        --white: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .top-strip {
+        height: 30px;
+        background: #8e4526;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.1px;
+      }
+
+      .site-header {
+        background: #f5f0e8;
+        border-bottom: 1px solid #e6ddd3;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+
+      .header-upper {
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 34px;
+      }
+
+      .header-upper-right {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+      }
+
+      .header-upper-right a {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        color: #6e5849;
+        text-decoration: none;
+      }
+
+      .header-main {
+        height: 64px;
+        display: grid;
+        grid-template-columns: 180px 1fr 120px;
+        align-items: center;
+        gap: 24px;
+        padding: 0 34px;
+        border-top: 1px solid rgba(0, 0, 0, 0.02);
+      }
+
+      .brand {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 27px;
+        letter-spacing: 4px;
+        color: #8a4b2c;
+        font-weight: 400;
+      }
+
+      .main-nav {
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        white-space: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .main-nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      .main-nav a {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 14px;
+        color: #5f4334;
+        text-decoration: none;
+      }
+
+      .main-nav a.sale-link {
+        color: #c77a3d;
+      }
+
+      .header-icons {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        color: #5f4334;
+        font-size: 18px;
+        user-select: none;
+      }
+
+      .page {
+        display: grid;
+        grid-template-columns: minmax(760px, 1fr) 410px;
+        min-height: calc(100vh - 94px);
+      }
+
+      .viewer-side {
+        position: relative;
+        min-height: calc(100vh - 94px);
+        background: #ece7e0;
+        overflow: hidden;
+      }
+
+      .backplate {
+        position: absolute;
+        inset: 0;
+        background-image: url("./backplate.jpg"); /* replace with your backplate image */
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+        z-index: 0;
+      }
+
+      .backplate::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      model-viewer {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: calc(100vh - 94px);
+        background: transparent;
+        --poster-color: transparent;
+      }
+
+      /* VISIBLE HOTSPOT CIRCLES */
+      .Hotspot {
+        width: 18px;
+        height: 18px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow:
+          0 0 0 2px rgba(79, 43, 30, 0.65),
+          0 0 0 6px rgba(255, 255, 255, 0.18);
+        cursor: pointer;
+        padding: 0;
+        position: relative;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+      }
+
+      .Hotspot:hover {
+        transform: scale(1.08);
+        box-shadow:
+          0 0 0 2px rgba(79, 43, 30, 0.85),
+          0 0 0 7px rgba(255, 255, 255, 0.28);
+      }
+
+      .Hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 5px;
+        border-radius: 50%;
+        background: rgba(79, 43, 30, 0.9);
+      }
+
+      .HotspotAnnotation {
+        position: absolute;
+        transform: translate(-50%, -125%);
+        background: rgba(79, 43, 30, 0.92);
+        color: #fff;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        line-height: 1.2;
+        white-space: nowrap;
+        padding: 8px 10px;
+        border-radius: 6px;
+        pointer-events: none;
+        letter-spacing: 0.2px;
+      }
+
+      .progress-bar {
+        display: block;
+        width: 33%;
+        height: 10px;
+        max-width: 300px;
+        position: absolute;
+        left: 50%;
+        top: 24px;
+        transform: translateX(-50%);
+        border-radius: 999px;
+        background-color: rgba(255, 255, 255, 0.72);
+        overflow: hidden;
+        z-index: 5;
+      }
+
+      .progress-bar.hide {
+        visibility: hidden;
+        transition: visibility 0.3s;
+      }
+
+      .update-bar {
+        background-color: var(--accent);
+        width: 0%;
+        height: 100%;
+        border-radius: 999px;
+        float: left;
+        transition: width 0.3s;
+      }
+
+      #ar-button {
+        position: absolute;
+        bottom: 24px;
+        right: 24px;
+        border: 1px solid rgba(79, 43, 30, 0.2);
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--text);
+        padding: 12px 16px;
+        border-radius: 999px;
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        cursor: pointer;
+        z-index: 5;
+      }
+
+      #ar-prompt {
+        position: absolute;
+        left: 50%;
+        bottom: 76px;
+        transform: translateX(-50%);
+        display: none;
+        z-index: 5;
+      }
+
+      #ar-prompt img {
+        height: 72px;
+      }
+
+      .product-panel {
+        background: #faf7f2;
+        border-left: 1px solid var(--line);
+        padding: 38px 32px 26px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      .crumbs {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 18px;
+      }
+
+      .tag {
+        display: inline-block;
+        width: fit-content;
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        color: var(--white);
+        background: #b56735;
+        padding: 4px 7px;
+        border-radius: 2px;
+        margin-bottom: 14px;
+      }
+
+      .product-title {
+        font-size: 34px;
+        line-height: 1.08;
+        font-weight: 400;
+        margin: 0 0 14px;
+        letter-spacing: -0.3px;
+      }
+
+      .price {
+        font-size: 18px;
+        margin-bottom: 26px;
+      }
+
+      .section {
+        margin-bottom: 24px;
+      }
+
+      .section-label {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+
+      .section-label em,
+      .material-note em {
+        font-style: italic;
+      }
+
+      .button-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .castlery-btn {
+        min-height: 36px;
+        padding: 9px 18px;
+        border: 1px solid #d7cdc2;
+        background: #fff;
+        color: #6a5446;
+        border-radius: 8px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        transition: 0.18s ease;
+      }
+
+      .castlery-btn:hover {
+        border-color: #bda894;
+      }
+
+      .castlery-btn.active {
+        background: var(--accent-dark);
+        color: #fff;
+        border-color: var(--accent-dark);
+      }
+
+      .material-note {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+
+      .mini-label {
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .swatch-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .swatch {
+        width: 56px;
+        height: 56px;
+        border-radius: 2px;
+        border: 1px solid #d8cec4;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .swatch.active {
+        outline: 2px solid #8e7a6d;
+        outline-offset: 2px;
+      }
+
+      .swatch[data-color="v1"] {
+        background: #2596be;
+      }
+
+      .swatch[data-color="v2"] {
+        background: #c2d5bf;
+      }
+
+      .swatch[data-color="v3"] {
+        background: #eac87a;
+      }
+
+      .link-row {
+        display: flex;
+        gap: 22px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+
+      .text-link {
+        font-size: 14px;
+        color: var(--text);
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      .subtle-box {
+        background: #f3eee8;
+        border: 1px solid #ece2d7;
+        padding: 14px;
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #8a6f5b;
+        margin-bottom: 20px;
+      }
+
+      .big-cta {
+        width: 100%;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        border-radius: 8px;
+        min-height: 50px;
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .delivery {
+        margin-top: 12px;
+        text-align: center;
+        color: #7e695b;
+        font-size: 14px;
+      }
+
+      @media (max-width: 1200px) {
+        .header-upper {
+          display: none;
+        }
+
+        .header-main {
+          grid-template-columns: 1fr auto;
+          height: auto;
+          padding: 14px 18px;
+          gap: 14px;
+        }
+
+        .brand {
+          font-size: 22px;
+        }
+
+        .main-nav {
+          grid-column: 1 / -1;
+          order: 3;
+          padding-bottom: 4px;
+        }
+
+        .page {
+          grid-template-columns: 1fr;
+          min-height: auto;
+        }
+
+        .viewer-side,
+        model-viewer {
+          min-height: 70vh;
+          height: 70vh;
+        }
+
+        .product-panel {
+          border-left: none;
+          border-top: 1px solid var(--line);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="top-strip">Delivery before Hari Raya + free like-for-like disposal</div>
+
+    <header class="site-header">
+      <div class="header-upper">
+        <div class="header-upper-right">
+          <a href="#">Interior Styling Service</a>
+          <a href="#">Visit Showroom</a>
+          <a href="#">Reviews</a>
+          <a href="#">The Castlery Club</a>
+          <a href="#">Refer a Friend</a>
+          <a href="#">Contact Us</a>
+          <a href="#">Singapore ▾</a>
+        </div>
+      </div>
+
+      <div class="header-main">
+        <div class="brand">CASTLERY</div>
+
+        <nav class="main-nav">
+          <a href="#">New</a>
+          <a href="#">Sofas</a>
+          <a href="#">Tables</a>
+          <a href="#">Chairs</a>
+          <a href="#">Beds</a>
+          <a href="#">Storage</a>
+          <a href="#">Furniture Sets</a>
+          <a href="#">Outdoor</a>
+          <a href="#">Accessories</a>
+          <a href="#">Tools</a>
+          <a href="#" class="sale-link">Mid-Season Sale</a>
+        </nav>
+
+        <div class="header-icons">
+          <span>⌕</span>
+          <span>◯</span>
+          <span>♡</span>
+          <span>👜</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="page">
+      <section class="viewer-side">
+        <div class="backplate"></div>
+
+        <model-viewer
+          id="gear"
+          src="trying w animaassss.glb"
+          ar
+          ar-modes="scene-viewer webxr quick-look"
+          camera-controls
+          tone-mapping="neutral"
+          poster="poster.png"
+          shadow-intensity="0.71"
+          animation-name="ArmatureAction.003"
+          exposure="1.05"
+          shadow-softness="0.82"
+          camera-orbit="0.7903deg 79.74deg 1.808m"
+        >
+          <!-- HOTSPOTS (positions unchanged) -->
+          <button
+            class="Hotspot"
+            slot="hotspot-1"
+            data-surface="6 0 887 883 1202 0.547 0.164 0.289"
+            data-visibility-attribute="visible"
+            onMouseOver="addhotspot1()"
+            onMouseOut="removehotspot1()"
+          >
+            <div class="HotspotAnnotation" id="hotspot1" style="visibility:hidden">
+              Expanding Panel
+            </div>
+          </button>
+
+          <button
+            class="Hotspot"
+            slot="hotspot-2"
+            data-surface="7 0 629 456 630 0.506 0.117 0.378"
+            data-visibility-attribute="visible"
+            onMouseOver="addhotspot2()"
+            onMouseOut="removehotspot2()"
+          >
+            <div class="HotspotAnnotation" id="hotspot2" style="visibility:hidden">
+              Physical UI
+            </div>
+          </button>
+
+          <button
+            class="Hotspot"
+            slot="hotspot-4"
+            data-surface="9 0 448 249 452 0.008 0.521 0.471"
+            data-visibility-attribute="visible"
+            onMouseOver="addhotspot4()"
+            onMouseOut="removehotspot4()"
+          >
+            <div class="HotspotAnnotation" id="hotspot4" style="visibility:hidden">
+              Control Buttons
+            </div>
+          </button>
+
+          <button
+            class="Hotspot"
+            slot="hotspot-5"
+            data-surface="2 0 1 4 6 0.468 0.215 0.317"
+            data-visibility-attribute="visible"
+            onMouseOver="addhotspot5()"
+            onMouseOut="removehotspot5()"
+          >
+            <div class="HotspotAnnotation" id="hotspot5" style="visibility:hidden">
+              Adjustable Height
+            </div>
+          </button>
+
+          <div class="progress-bar hide" slot="progress-bar">
+            <div class="update-bar"></div>
+          </div>
+
+          <button slot="ar-button" id="ar-button">View in your space</button>
+
+          <div id="ar-prompt">
+            <img src="ar_hand_prompt.png" alt="AR prompt" />
+          </div>
+        </model-viewer>
+      </section>
+
+      <aside class="product-panel">
+        <div class="crumbs">Home &nbsp;&gt;&nbsp; Drapes &nbsp;&gt;&nbsp; Custom Drapes</div>
+
+        <span class="tag">Featured</span>
+
+        <h1 class="product-title">Missy's Drapes</h1>
+
+        <div class="price">$127.90</div>
+
+        <div class="section">
+          <div class="section-label">Model:</div>
+          <div class="button-grid" id="orbitGroup">
+            <button class="castlery-btn active" onclick="setOrbit('0.7903deg 79.74deg 1.808m', this)">Front</button>
+            <button class="castlery-btn" onclick="setOrbit('1.185deg 4.347deg 1.829m', this)">Top</button>
+            <button class="castlery-btn" onclick="setOrbit('-0.7904deg 180deg 1.829m', this)">Bottom</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="material-note">Material: <em>Choose Variant</em></div>
+          <div class="mini-label">Stocked fabrics:</div>
+
+          <div class="swatch-row">
+            <button class="swatch active" data-color="v1" onclick="setVariant('v1')" title="#2596be"></button>
+            <button class="swatch" data-color="v2" onclick="setVariant('v2')" title="#c2d5bf"></button>
+            <button class="swatch" data-color="v3" onclick="setVariant('v3')" title="#eac87a"></button>
+          </div>
+
+          <div class="button-grid" id="variantGroup">
+            <button class="castlery-btn active" data-variant-btn="v1" onclick="setVariant('v1')">v1</button>
+            <button class="castlery-btn" data-variant-btn="v2" onclick="setVariant('v2')">v2</button>
+            <button class="castlery-btn" data-variant-btn="v3" onclick="setVariant('v3')">v3</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Animation:</div>
+          <div class="button-grid" id="animationGroup">
+            <button class="castlery-btn" id="default1Btn" onclick="Btn01(this)">Panel Expansion</button>
+            <button class="castlery-btn active" id="default2Btn" onclick="Btn02(this)">Exploded View</button>
+            <button class="castlery-btn" id="pauseBtn" onclick="pauseAnimation(this)">Pause Animation</button>
+          </div>
+        </div>
+
+        <div class="link-row">
+          <span class="text-link">View fabric details</span>
+          <span class="text-link">Get free swatches</span>
+        </div>
+
+        <div class="subtle-box">
+          Add-on styling: Pair your drapes with matching textures and finishes for a more refined presentation.
+        </div>
+
+        <button class="big-cta">Add to Cart - $127.90</button>
+        <div class="delivery">Ready for your space</div>
+      </aside>
+    </div>
+
+    <script>
+      function setOrbit(orbit, btn) {
+        document.getElementById("gear").cameraOrbit = orbit;
+
+        document.querySelectorAll("#orbitGroup .castlery-btn").forEach((b) => {
+          b.classList.remove("active");
+        });
+        if (btn) btn.classList.add("active");
+      }
+
+      function Btn01(btn) {
+        const mv = document.getElementById("gear");
+        mv.pause();
+        mv.animationName = "ArmatureAction";
+        mv.play();
+        setActiveInGroup(btn);
+      }
+
+      function Btn02(btn) {
+        const mv = document.getElementById("gear");
+        mv.pause();
+        mv.animationName = "ArmatureAction.003";
+        mv.play();
+        setActiveInGroup(btn);
+      }
+
+      function pauseAnimation(btn) {
+        document.getElementById("gear").pause();
+        setActiveInGroup(btn);
+      }
+
+      function setActiveInGroup(btn) {
+        const group = btn.parentElement;
+        group.querySelectorAll(".castlery-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      function setVariant(variant) {
+        document.getElementById("gear").variantName = variant;
+
+        document.querySelectorAll(".swatch").forEach((s) => s.classList.remove("active"));
+        document.querySelector(`.swatch[data-color="${variant}"]`)?.classList.add("active");
+
+        document.querySelectorAll("#variantGroup .castlery-btn").forEach((b) => {
+          b.classList.remove("active");
+        });
+        document.querySelector(`[data-variant-btn="${variant}"]`)?.classList.add("active");
+      }
+
+      // Hotspot hover show/hide (positions unchanged)
+      function addhotspot1() {
+        document.getElementById("hotspot1").style.visibility = "visible";
+      }
+
+      function removehotspot1() {
+        document.getElementById("hotspot1").style.visibility = "hidden";
+      }
+
+      function addhotspot2() {
+        document.getElementById("hotspot2").style.visibility = "visible";
+      }
+
+      function removehotspot2() {
+        document.getElementById("hotspot2").style.visibility = "hidden";
+      }
+
+      function addhotspot4() {
+        document.getElementById("hotspot4").style.visibility = "visible";
+      }
+
+      function removehotspot4() {
+        document.getElementById("hotspot4").style.visibility = "hidden";
+      }
+
+      function addhotspot5() {
+        document.getElementById("hotspot5").style.visibility = "visible";
+      }
+
+      function removehotspot5() {
+        document.getElementById("hotspot5").style.visibility = "hidden";
+      }
+
+      const modelViewer = document.querySelector("#gear");
+      const progressBar = document.querySelector(".progress-bar");
+      const updatingBar = document.querySelector(".update-bar");
+
+      modelViewer.addEventListener("progress", (event) => {
+        const progress = event.detail.totalProgress;
+        updatingBar.style.width = `${progress * 100}%`;
+
+        if (progress === 1) {
+          progressBar.classList.add("hide");
+          setTimeout(() => {
+            progressBar.classList.add("hide");
+          }, 500);
+        } else {
+          progressBar.classList.remove("hide");
+        }
+      });
+    </script>
+
+    <script
+      type="module"
+      src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"
+    ></script>
+  </body>
+</html>
